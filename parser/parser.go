@@ -5,6 +5,7 @@ import (
 	"Go-interpreter/lexer"
 	"Go-interpreter/token"
 	"fmt"
+	"strconv"
 )
 
 const (
@@ -23,8 +24,9 @@ type Parser struct {
 	curToken  token.Token // the current token that we're looking at
 	peekToken token.Token // the next token that we're looking at
 
-	prefixParseFns map[token.TokenType]prefixParseFn
-	infixParseFns  map[token.TokenType]infixParseFn
+	// maps from the type of token to the function used to parse that token
+	prefixParseFns map[token.TokenType]prefixParseFn // used for prefixes
+	infixParseFns  map[token.TokenType]infixParseFn  // used for infixes
 	errors         []string
 }
 
@@ -38,6 +40,7 @@ func New(l *lexer.Lexer) *Parser {
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 
 	return p
 }
@@ -115,6 +118,20 @@ func (p *Parser) parseStatement() ast.Statement {
 
 func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+}
+
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	literal := &ast.IntegerLiteral{Token: p.curToken}
+
+	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("Could not parse %q as integer", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	literal.Value = value
+	return literal
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
