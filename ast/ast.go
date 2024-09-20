@@ -42,6 +42,7 @@ func (p *Program) String() string {
 	return out.String()
 }
 
+// for expressions
 type ExpressionStatement struct {
 	Token      token.Token
 	Expression Expression
@@ -56,6 +57,27 @@ func (es *ExpressionStatement) String() string {
 	return ""
 }
 
+// for Prefix expresions etc. -15
+type PrefixExpression struct {
+	Token    token.Token // the token of the prefix eg. !
+	Operator string
+	Right    Expression
+}
+
+func (pe *PrefixExpression) expressionNode()      {}
+func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
+func (pe *PrefixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(pe.Operator)
+	out.WriteString(pe.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
+
+// for name identifiers
 type Identifier struct {
 	Token token.Token
 	Value string
@@ -67,6 +89,7 @@ func (i *Identifier) String() string {
 	return i.Value
 }
 
+// for integers
 type IntegerLiteral struct {
 	Token token.Token
 	Value int64
@@ -76,6 +99,7 @@ func (num *IntegerLiteral) expressionNode()      {}
 func (num *IntegerLiteral) TokenLiteral() string { return num.Token.Literal }
 func (num *IntegerLiteral) String() string       { return num.Token.Literal }
 
+// for let statements
 type LetStatement struct {
 	Token token.Token
 	Name  *Identifier
@@ -101,6 +125,7 @@ func (ls *LetStatement) String() string {
 	return out.String()
 }
 
+// for return statements
 type ReturnStatement struct {
 	Token       token.Token
 	ReturnValue Expression
